@@ -6,3 +6,6 @@ llama_index
 matplotlib
 seaborn
 tiktoken
+plotly
+streamlit
+scikit-learn
