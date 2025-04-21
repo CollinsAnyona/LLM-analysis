@@ -1,0 +1,14 @@
+[
+    {
+        "student_name": "John Doe",
+        "career_goals": "Become a software engineer",
+        "interest_area": "Technology",
+        "location": "Nairobi"
+    },
+    {
+        "student_name": "Jane Smith",
+        "career_goals": "Pursue a career in healthcare",
+        "interest_area": "Healthcare",
+        "location": "Mombasa"
+    }
+]

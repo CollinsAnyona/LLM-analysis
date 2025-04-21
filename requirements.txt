@@ -1,0 +1,8 @@
+openai
+pandas
+requests
+dotenv
+llama_index
+matplotlib
+seaborn
+tiktoken
