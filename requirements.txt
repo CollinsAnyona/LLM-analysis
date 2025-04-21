@@ -9,3 +9,4 @@ tiktoken
 plotly
 streamlit
 scikit-learn
+wordcloud
