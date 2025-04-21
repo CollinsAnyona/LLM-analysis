@@ -12,3 +12,4 @@ scikit-learn
 wordcloud
 textblob
 datetime
+transformers
