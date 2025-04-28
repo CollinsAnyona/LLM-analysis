@@ -75,16 +75,32 @@ options = st.sidebar.radio("Select a Section", (
 st.title("Student Career Aspirations Dashboard")
 
 # Load data
-with open("mock_data.json", "r") as f:
+with open("mock_data.json", "r", encoding="utf-8") as f:
     mock_data = json.load(f)
 df = pd.DataFrame(mock_data)
-text_data_for_modeling = df['career_goals'].str.lower()
+text_data_for_modeling = df['content'].str.lower()
+
+# Optional: Handle uploaded file (e.g., transcript)
+uploaded_file = st.file_uploader("Upload Transcript", type=["txt"], key="unique_file_uploader_1")
+if uploaded_file:
+    raw_text = uploaded_file.read().decode("utf-8")
+    text_data_for_modeling = [raw_text.lower()]  # Process the uploaded file
+    st.success("Uploaded successfully")
+    st.text_area("Preview", raw_text[:500])
 
 # Location filter
 if "location" in df.columns:
     locs = st.sidebar.multiselect("Filter by Location", options=df['location'].unique())
     if locs:
         df = df[df['location'].isin(locs)]
+
+# --- Prepare Text Data and Fit LDA model (globally) ---
+n_topics = 5  # Default value, will be updated later if user changes it in Topic Modeling
+vectorizer = CountVectorizer(max_features=1000, stop_words='english')
+X = vectorizer.fit_transform(text_data_for_modeling)
+lda = LatentDirichletAllocation(n_components=n_topics, random_state=42)
+lda.fit(X)
+words = vectorizer.get_feature_names_out()
 
 # Overview
 if options == "Overview":
@@ -95,7 +111,7 @@ if options == "Overview":
 # Career Interests
 elif options == "Career Interests":
     st.subheader("Career Interests")
-    career_interest_count = df['interest_area'].value_counts()
+    career_interest_count = df['content'].value_counts()
     fig = px.bar(career_interest_count, x=career_interest_count.index, y=career_interest_count.values,
                  title="Career Interests", labels={'x': 'Career Area', 'y': 'Count'})
     st.plotly_chart(fig)
@@ -109,7 +125,7 @@ elif options == "Career Interests":
 # Topic Modeling
 elif options == "Topic Modeling":
     st.subheader("Topic Modeling")
-    uploaded_file = st.file_uploader("Upload Transcript", type=["txt"])
+    # uploaded_file = st.file_uploader("Upload Transcript", type=["txt"])
     if uploaded_file:
         raw_text = uploaded_file.read().decode("utf-8")
         text_data_for_modeling = [raw_text.lower()]
@@ -145,7 +161,7 @@ elif options == "Topic Distribution":
 # Sentiment Analysis
 elif options == "Sentiment Analysis":
     st.subheader("Sentiment Analysis")
-    df['polarity'] = df['career_goals'].apply(lambda x: TextBlob(x).sentiment.polarity)
+    df['polarity'] = df['content'].apply(lambda x: TextBlob(x).sentiment.polarity)
     fig = px.histogram(df, x='polarity', nbins=20, title="Sentiment Polarity Distribution")
     st.plotly_chart(fig)
 
@@ -153,12 +169,12 @@ elif options == "Sentiment Analysis":
 elif options == "Clustering":
     st.subheader("Career Goal Clusters")
     tfidf = TfidfVectorizer(stop_words='english')
-    tfidf_matrix = tfidf.fit_transform(df['career_goals'])
+    tfidf_matrix = tfidf.fit_transform(df['content'])
     k = st.slider("Select Number of Clusters", 2, 10, 4)
     km = KMeans(n_clusters=k, random_state=0)
     km.fit(tfidf_matrix)
     df['cluster'] = km.labels_
-    st.dataframe(df[['career_goals', 'cluster']])
+    st.dataframe(df[['content', 'cluster']])
     fig = px.histogram(df, x='cluster', title="Cluster Distribution")
     st.plotly_chart(fig)
 
